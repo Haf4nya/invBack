@@ -136,28 +136,27 @@ async function generateQrCode(text) {
    }
  }
  
- async function createPdfWithQrCodes(selectedIds) {
+ async function createPdfWithQrCodes(selectedIds, filePath) {
   try {
     const fontPath = 'aqum2.otf';
     const qrCodes = await getQrCodesFromDatabase(selectedIds);
     const margin = 10; 
     const imageSize = 75;
-    const pageWidth = 600; // Ширина страницы
-    const pageHeight = 900; // Высота страницы A4
+    const pageWidth = 600; 
+    const pageHeight = 900;
     let doc = new PDFDocument({ size: "A4", margin });
     doc.registerFont('aqum2', fontPath);
     doc.font('aqum2');
-    doc.pipe(fs.createWriteStream('qrcodes.pdf'));
+    doc.pipe(fs.createWriteStream(filePath));
 
-    let currentY = margin; // Начальная позиция Y
+    let currentY = margin;
     let currentPage = 0; 
 
     qrCodes.forEach((item, index) => {
       console.log(`Processing QR code ${index}:`, item.qrCode);
       const qrImageBuffer = Buffer.from(item.qrCode.split(",")[1], 'base64');
 
-      // Проверка, достаточно ли места на текущей странице
-      if (currentY + 150 > pageHeight - margin) { // Изменено условие для учета pageHeight
+      if (currentY + 150 > pageHeight - margin) { 
         doc.addPage();
         currentPage++;
         currentY = margin; 
@@ -210,11 +209,13 @@ async function convertPdfToBase64(filePath) {
 
 app.post('/download', async (req, res) => {
   try {
+    const filePath = path.join(__dirname, 'qrcodes.pdf');
     const selectedIds = req.body.ids;
     console.log(selectedIds);
-    await createPdfWithQrCodes(selectedIds); // Создаем PDF с QR-кодами
-    const filePath = path.join(__dirname, 'qrcodes.pdf');
+    await createPdfWithQrCodes(selectedIds, filePath); // Создаем PDF с QR-кодами
+    await new Promise(resolve => setTimeout(resolve, 250));
     const base64String = await pdf2base64(filePath); // Преобразуем PDF в Base64
+    console.log(base64String);
     res.send(base64String); // Отправляем Base64-строку
   } catch (error) {
     console.error('Ошибка при создании и отправке PDF файла:', error);
