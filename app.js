@@ -88,7 +88,7 @@ app.post('/create', async (req, res) => {
 });
 
 app.get('/item', async (req, res) => {
-  const itemId = req.query.id;
+  const itemId = Number(req.query.id);
   const itemInvNumber = req.query.invNumber || null;
 
   const queryParam = itemId? { where: { id: itemId } } : { where: { invNumber: itemInvNumber } };
