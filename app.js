@@ -88,9 +88,15 @@ app.post('/create', async (req, res) => {
 });
 
 app.get('/item', async (req, res) => {
- const result = await Item.findByPk(req.query.id);
- console.log(result);
- res.send(result);
+  const itemId = req.query.id;
+  const itemInvNumber = req.query.invNumber || null;
+
+  const queryParam = itemId? { where: { id: itemId } } : { where: { invNumber: itemInvNumber } };
+
+  const result = await Item.findOne(queryParam);
+  
+  console.log(result);
+  res.send(result);
 });
 
 app.post('/update', async (req, res) => {
